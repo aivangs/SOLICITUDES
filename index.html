@@ -5,70 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Registro de Solicitudes de Compra</title>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f4f4f9;
-      margin: 0;
-      padding: 2rem;
-    }
-    h1 {
-      text-align: center;
-      color: #333;
-    }
-    form {
-      background: white;
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      max-width: 600px;
-      margin: auto;
-      display: grid;
-      gap: 1rem;
-    }
-    input, select, button {
-      padding: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      font-size: 1rem;
-    }
-    button {
-      background-color: #007bff;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    table {
-      width: 100%;
-      margin-top: 2rem;
-      border-collapse: collapse;
-    }
-    th, td {
-      padding: 0.5rem;
-      border: 1px solid #ccc;
-      text-align: center;
-    }
-    th {
-      background-color: #007bff;
-      color: white;
-    }
+    /* ...tu CSS existente... */
   </style>
 </head>
 <body>
   <h1>Registro de Solicitudes de Compra</h1>
   <form id="solicitudForm">
-    <input type="text" id="material" placeholder="Material" required />
-    <input type="number" id="cantidad" placeholder="Cantidad" required />
-    <input type="text" id="proveedor" placeholder="Proveedor" required />
-    <input type="number" step="0.01" id="costo" placeholder="Costo" required />
-    <input type="date" id="fecha" required />
+    <input type="text" id="solicitante"  placeholder="Solicitante"                required />
+    <input type="text" id="motivo"        placeholder="Motivo de solicitud"        required />
+    <input type="text" id="factura"       placeholder="No. factura / Cantidad venta" required />
+    <input type="text" id="material"      placeholder="Material"                   required />
+    <input type="number" id="cantidad"    placeholder="Cantidad"                   required />
+    <input type="text" id="proveedor"     placeholder="Proveedor"                  required />
+    <input type="number" step="0.01" id="costo" placeholder="Costo"                   required />
+    <input type="date"   id="fecha"       required />
     <button type="submit">Agregar Solicitud</button>
   </form>
 
   <table id="tablaSolicitudes">
     <thead>
       <tr>
+        <th>Solicitante</th>
+        <th>Motivo</th>
+        <th>No. factura / Cant. venta</th>
         <th>Material</th>
         <th>Cantidad</th>
         <th>Proveedor</th>
@@ -83,63 +42,60 @@
   </table>
 
   <script>
-    const form = document.getElementById('solicitudForm');
-    const tabla = document.querySelector('#tablaSolicitudes tbody');
-
+    const form      = document.getElementById('solicitudForm');
+    const tabla     = document.querySelector('#tablaSolicitudes tbody');
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxDmgd4CmQDE5B-S7AjUTQP1yHwavATnZiF-KV1nN_0V_UQXy6bqkszwv7mPojqnese/exec';
 
-    // Envío del formulario a Google Sheets
     form.onsubmit = async e => {
       e.preventDefault();
-
-      const formData = new URLSearchParams();
-      formData.append('material', form.material.value);
-      formData.append('cantidad', form.cantidad.value);
-      formData.append('proveedor', form.proveedor.value);
-      formData.append('costo', form.costo.value);
-      formData.append('fecha', form.fecha.value);
+      const datos = new URLSearchParams();
+      datos.append('solicitante', form.solicitante.value);
+      datos.append('motivo',       form.motivo.value);
+      datos.append('factura',      form.factura.value);
+      datos.append('material',     form.material.value);
+      datos.append('cantidad',     form.cantidad.value);
+      datos.append('proveedor',    form.proveedor.value);
+      datos.append('costo',        form.costo.value);
+      datos.append('fecha',        form.fecha.value);
 
       try {
-        await fetch(scriptURL, {
-          method: 'POST',
-          body: formData
-        });
-        alert('✅ Solicitud enviada exitosamente');
+        await fetch(scriptURL, { method: 'POST', body: datos });
+        alert('✅ Solicitud enviada');
         form.reset();
-        renderTabla(); // actualiza la tabla con los datos nuevos
-      } catch (error) {
-        alert('❌ Error al enviar: ' + error.message);
+        renderTabla();
+      } catch (err) {
+        alert('❌ Error: ' + err);
       }
     };
 
-    // Cargar datos desde Google Sheets
     async function renderTabla() {
       tabla.innerHTML = '';
       try {
         const res = await fetch(scriptURL);
-        const solicitudes = await res.json();
-
-        solicitudes.forEach((s, i) => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
+        const arr = await res.json();
+        arr.forEach(s => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${s.solicitante}</td>
+            <td>${s.motivo}</td>
+            <td>${s.factura}</td>
             <td>${s.material}</td>
             <td>${s.cantidad}</td>
             <td>${s.proveedor}</td>
             <td>$${parseFloat(s.costo).toFixed(2)}</td>
             <td>${s.fecha}</td>
-            <td>${s.estado || ''}</td>
+            <td>${s.estado}</td>
             <td>${s.fechaCompletado || ''}</td>
             <td></td>
           `;
-          tabla.appendChild(row);
+          tabla.appendChild(tr);
         });
-      } catch (err) {
-        console.error('Error al cargar datos:', err);
-        tabla.innerHTML = '<tr><td colspan="8">Error al cargar datos</td></tr>';
+      } catch {
+        tabla.innerHTML = '<tr><td colspan="11">Error al cargar datos</td></tr>';
       }
     }
 
-    // Mostrar datos al abrir la página
+    // Al cargar la página
     renderTabla();
   </script>
 </body>
