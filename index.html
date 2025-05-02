@@ -84,83 +84,65 @@
 
   <script>
     const form = document.getElementById('solicitudForm');
-    const tabla = document.getElementById('tablaSolicitudes').querySelector('tbody');
+    const tabla = document.querySelector('#tablaSolicitudes tbody');
 
-    let solicitudes = JSON.parse(localStorage.getItem('solicitudes')) || [];
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbw8VQQkoWVWrkCIHixLAQDv4zVOA7TedApUa-WF4-Y1GnPLKq1A2-8wPJ5Yk4E_W52x1g/exec';
 
-    function renderTabla() {
+    // Envío del formulario a Google Sheets
+    form.onsubmit = async e => {
+      e.preventDefault();
+
+      const formData = new URLSearchParams();
+      formData.append('material', form.material.value);
+      formData.append('cantidad', form.cantidad.value);
+      formData.append('proveedor', form.proveedor.value);
+      formData.append('costo', form.costo.value);
+      formData.append('fecha', form.fecha.value);
+
+      try {
+        await fetch(scriptURL, {
+          method: 'POST',
+          body: formData
+        });
+        alert('✅ Solicitud enviada exitosamente');
+        form.reset();
+        renderTabla(); // actualiza la tabla con los datos nuevos
+      } catch (error) {
+        alert('❌ Error al enviar: ' + error.message);
+      }
+    };
+
+    // Cargar datos desde Google Sheets
+    async function renderTabla() {
       tabla.innerHTML = '';
-      solicitudes.forEach((s, i) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${s.material}</td>
-          <td>${s.cantidad}</td>
-          <td>${s.proveedor}</td>
-          <td>$${s.costo.toFixed(2)}</td>
-          <td>${s.fecha}</td>
-          <td>
-            <select onchange="cambiarEstado(${i}, this.value)">
-              <option ${s.estado === 'En proceso de solicitud' ? 'selected' : ''}>En proceso de solicitud</option>
-              <option ${s.estado === 'En proceso de cotización' ? 'selected' : ''}>En proceso de cotización</option>
-              <option ${s.estado === 'Solicitado' ? 'selected' : ''}>Solicitado</option>
-              <option ${s.estado === 'Completado' ? 'selected' : ''}>Completado</option>
-            </select>
-          </td>
-          <td><input type="date" value="${s.fechaCompletado || ''}" onchange="actualizarFechaCompletado(${i}, this.value)" ${s.estado !== 'Completado' ? 'disabled' : ''}></td>
-          <td><button onclick="eliminar(${i})">Eliminar</button></td>
-        `;
-        tabla.appendChild(row);
-      });
-    }
+      try {
+        const res = await fetch(scriptURL);
+        const solicitudes = await res.json();
 
-    function cambiarEstado(index, estado) {
-      solicitudes[index].estado = estado;
-      if (estado !== 'Completado') solicitudes[index].fechaCompletado = '';
-      guardarYRender();
-    }
-
-    function actualizarFechaCompletado(index, fecha) {
-      solicitudes[index].fechaCompletado = fecha;
-      guardarYRender();
-    }
-
-    function eliminar(index) {
-      if (confirm('¿Eliminar esta solicitud?')) {
-        solicitudes.splice(index, 1);
-        guardarYRender();
+        solicitudes.forEach((s, i) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${s.material}</td>
+            <td>${s.cantidad}</td>
+            <td>${s.proveedor}</td>
+            <td>$${parseFloat(s.costo).toFixed(2)}</td>
+            <td>${s.fecha}</td>
+            <td>${s.estado || ''}</td>
+            <td>${s.fechaCompletado || ''}</td>
+            <td></td>
+          `;
+          tabla.appendChild(row);
+        });
+      } catch (err) {
+        console.error('Error al cargar datos:', err);
+        tabla.innerHTML = '<tr><td colspan="8">Error al cargar datos</td></tr>';
       }
     }
 
-    function guardarYRender() {
-      localStorage.setItem('solicitudes', JSON.stringify(solicitudes));
-      renderTabla();
-    }
-
-form.onsubmit = async e => {
-  e.preventDefault();
-
-  const formData = new URLSearchParams();
-  formData.append('material', form.material.value);
-  formData.append('cantidad', form.cantidad.value);
-  formData.append('proveedor', form.proveedor.value);
-  formData.append('costo', form.costo.value);
-  formData.append('fecha', form.fecha.value);
-
-  try {
-    await fetch('https://script.google.com/macros/s/AKfycbw8VQQkoWVWrkCIHixLAQDv4zVOA7TedApUa-WF4-Y1GnPLKq1A2-8wPJ5Yk4E_W52x1g/exec', {
-      method: 'POST',
-      body: formData
-    });
-
-    alert('✅ Solicitud enviada exitosamente');
-    form.reset();
-  } catch (error) {
-    alert('❌ Error al enviar solicitud: ' + error.message);
-  }
-};
-
-
+    // Mostrar datos al abrir la página
     renderTabla();
   </script>
 </body>
 </html>
+
+
