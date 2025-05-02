@@ -136,21 +136,29 @@
       renderTabla();
     }
 
-    form.onsubmit = e => {
-      e.preventDefault();
-      const nueva = {
-        material: form.material.value,
-        cantidad: parseInt(form.cantidad.value),
-        proveedor: form.proveedor.value,
-        costo: parseFloat(form.costo.value),
-        fecha: form.fecha.value,
-        estado: 'En proceso de solicitud',
-        fechaCompletado: ''
-      };
-      solicitudes.push(nueva);
-      guardarYRender();
-      form.reset();
-    };
+form.onsubmit = async e => {
+  e.preventDefault();
+
+  const formData = new URLSearchParams();
+  formData.append('material', form.material.value);
+  formData.append('cantidad', form.cantidad.value);
+  formData.append('proveedor', form.proveedor.value);
+  formData.append('costo', form.costo.value);
+  formData.append('fecha', form.fecha.value);
+
+  try {
+    await fetch('https://script.google.com/macros/s/AKfycbw8VQQkoWVWrkCIHixLAQDv4zVOA7TedApUa-WF4-Y1GnPLKq1A2-8wPJ5Yk4E_W52x1g/exec', {
+      method: 'POST',
+      body: formData
+    });
+
+    alert('✅ Solicitud enviada exitosamente');
+    form.reset();
+  } catch (error) {
+    alert('❌ Error al enviar solicitud: ' + error.message);
+  }
+};
+
 
     renderTabla();
   </script>
