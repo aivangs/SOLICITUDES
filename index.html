@@ -5,19 +5,75 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Registro de Solicitudes de Compra</title>
   <style>
-    /* ...tu CSS existente... */
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 2rem;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    form {
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      max-width: 600px;
+      margin: auto;
+      display: grid;
+      gap: 1rem;
+    }
+    input, select, button {
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    table {
+      width: 100%;
+      margin-top: 2rem;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
+      text-transform: uppercase;
+      font-size: 0.9rem;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
   </style>
 </head>
 <body>
   <h1>Registro de Solicitudes de Compra</h1>
   <form id="solicitudForm">
-    <input type="text" id="solicitante"  placeholder="Solicitante"                required />
-    <input type="text" id="motivo"        placeholder="Motivo de solicitud"        required />
-    <input type="text" id="factura"       placeholder="No. factura / Cantidad venta" required />
-    <input type="text" id="material"      placeholder="Material"                   required />
-    <input type="number" id="cantidad"    placeholder="Cantidad"                   required />
-    <input type="text" id="proveedor"     placeholder="Proveedor"                  required />
-    <input type="number" step="0.01" id="costo" placeholder="Costo"                   required />
+    <input type="text" id="solicitante"  placeholder="Solicitante"                   required />
+    <input type="text" id="motivo"        placeholder="Motivo de solicitud"         required />
+    <input type="text" id="factura"       placeholder="No. factura / Cant. venta"    required />
+    <input type="text" id="material"      placeholder="Material"                     required />
+    <input type="number" id="cantidad"    placeholder="Cantidad"                     required />
+    <input type="text" id="proveedor"     placeholder="Proveedor"                    required />
+    <input type="number" step="0.01" id="costo" placeholder="Costo"                       required />
     <input type="date"   id="fecha"       required />
     <button type="submit">Agregar Solicitud</button>
   </form>
@@ -46,6 +102,7 @@
     const tabla     = document.querySelector('#tablaSolicitudes tbody');
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxDmgd4CmQDE5B-S7AjUTQP1yHwavATnZiF-KV1nN_0V_UQXy6bqkszwv7mPojqnese/exec';
 
+    // Envío del formulario a Google Sheets
     form.onsubmit = async e => {
       e.preventDefault();
       const datos = new URLSearchParams();
@@ -64,10 +121,11 @@
         form.reset();
         renderTabla();
       } catch (err) {
-        alert('❌ Error: ' + err);
+        alert('❌ Error al enviar: ' + err.message);
       }
     };
 
+    // Cargar y mostrar datos desde Google Sheets
     async function renderTabla() {
       tabla.innerHTML = '';
       try {
@@ -100,6 +158,4 @@
   </script>
 </body>
 </html>
-
-
 
